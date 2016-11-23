@@ -1,12 +1,9 @@
 package com.andr.getsmsmessage;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -14,9 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
@@ -55,8 +50,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Uri uri = Uri.parse("content://sms/");
         this.getContentResolver().registerContentObserver(uri, true, smsObserver);
 
-        checkPermissions(Manifest.permission.READ_PHONE_STATE,0);
-        checkPermissions(Manifest.permission.SEND_SMS,1);
+
+        String[] permissionList={Manifest.permission.READ_PHONE_STATE,Manifest.permission.SEND_SMS};
+        checkPermissions(permissionList,169);
 
     }
 
@@ -236,48 +232,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void checkPermissions(String permission, int requestCode) {
+    private void checkPermissions(String[] permissionList, int requestCode) {
         if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return;
         }
 
-        int permissionCheckStatus = ContextCompat.checkSelfPermission(this, permission);
-        boolean isGranted=permissionCheckStatus == PackageManager.PERMISSION_GRANTED?true:false;
-        boolean shouldShowPermission= ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
-        System.out.println("shouldShowPermission:"+shouldShowPermission);
-        if(!shouldShowPermission&&!isGranted){
-            showMessageOKCancel("You need to allow access these permissions",
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()));
-                            startActivityForResult(intent, 2);
-                            finish();
-                        }
-                    });
-            return;
-        }else if(shouldShowPermission&&!isGranted){
-            requestPermissions(new String[]{permission}, requestCode);
+        for(int i=0;i<permissionList.length;i++){
+            int permissionCheckStatus = ContextCompat.checkSelfPermission(this, permissionList[i]);
+            boolean isGranted=permissionCheckStatus == PackageManager.PERMISSION_GRANTED?true:false;
+//            boolean shouldShowPermission= ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
+            if(!isGranted){
+                requestPermissions(permissionList, requestCode);
+            }
         }
     }
 
-    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(MainActivity.this)
-                .setMessage(message)
-                .setCancelable(false)
-                .setPositiveButton("OK", okListener)
-//				.setPositiveButton("Cancel",okListener)
-                .create()
-                .show();
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        System.out.println("requestCode:"+requestCode);
-        if (requestCode == 0||requestCode == 1) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-               this.finish();
+        if (requestCode == 169) {
+            for(int i=0;i<grantResults.length;i++){
+                if(grantResults[i] == PackageManager.PERMISSION_DENIED)
+                    this.finish();
             }
         }
     }
