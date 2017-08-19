@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void loadingDialog(){
         showProgressDialog();
 
-        dialogHandler.postDelayed(runnableLoading, 4000);
+        dialogHandler.postDelayed(runnableLoading, 10*1000);
     }
 
     private Runnable runnableLoading = new Runnable() {
